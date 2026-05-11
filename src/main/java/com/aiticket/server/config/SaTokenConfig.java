@@ -1,8 +1,6 @@
 package com.aiticket.server.config;
 
 import cn.dev33.satoken.interceptor.SaInterceptor;
-import cn.dev33.satoken.router.SaHttpMethod;
-import cn.dev33.satoken.router.SaRouter;
 import cn.dev33.satoken.stp.StpUtil;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
@@ -14,23 +12,13 @@ public class SaTokenConfig implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-
-        registry.addInterceptor(new SaInterceptor(handler -> {
-
-                    // 放行 OPTIONS 预检请求
-                    SaRouter.match("/**")
-                            .notMatch(SaHttpMethod.OPTIONS)
-                            .check(r -> StpUtil.checkLogin());
-
-                }))
+        registry.addInterceptor(new SaInterceptor(handle -> StpUtil.checkLogin()))
                 .addPathPatterns("/**")
                 .excludePathPatterns(
                         "/auth/login",
                         "/auth/test/pwd",
                         "/error",
                         "/favicon.ico",
-
-                        // swagger
                         "/v3/api-docs",
                         "/v3/api-docs/**",
                         "/v3/api-docs.yaml",
