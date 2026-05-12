@@ -1,0 +1,25 @@
+spring:
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+#  data:
+#    redis:
+#      host: ${REDIS_HOST}
+#      port: ${REDIS_PORT:6379}
+#      password: ${REDIS_PASSWORD:}
+#      database: ${REDIS_DATABASE:0}
+#      timeout: 3s
+  sql:
+    init:
+      mode: never
+
+sa-token:
+  timeout: ${SA_TOKEN_TIMEOUT:86400}
+  is-log: false
+
+logging:
+  level:
+    root: info
+    com.aiticket.server: info
