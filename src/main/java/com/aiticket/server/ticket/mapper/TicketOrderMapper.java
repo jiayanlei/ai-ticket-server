@@ -28,8 +28,11 @@ public interface TicketOrderMapper extends BaseMapper<TicketOrder> {
             <if test="query.category != null and query.category != ''">
               and category = #{query.category}
             </if>
-            <if test="query.assigneeId != null">
-              and assignee_id = #{query.assigneeId}
+            <if test="query.handlerId != null">
+              and handler_id = #{query.handlerId}
+            </if>
+            <if test="query.handlerId == null and query.assigneeId != null">
+              and handler_id = #{query.assigneeId}
             </if>
             <if test="query.applicantId != null">
               and applicant_id = #{query.applicantId}

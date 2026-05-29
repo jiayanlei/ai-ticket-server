@@ -110,19 +110,34 @@ create table if not exists ticket_order (
     ticket_no varchar(64) not null,
     title varchar(255) not null,
     description text not null,
+    status varchar(32) not null default 'DRAFT',
     priority varchar(32) not null default 'NORMAL',
-    status varchar(32) not null default 'NEW',
-    source varchar(64),
+    source varchar(32),
     category varchar(64),
     applicant_id bigint,
     applicant_name varchar(64),
-    assignee_id bigint,
-    assignee_name varchar(64),
-    due_time timestamp,
-    resolved_time timestamp,
-    closed_time timestamp,
-    ai_summary text,
+    handler_id bigint,
+    handler_name varchar(64),
+    expected_finish_time timestamp,
+    submit_time timestamp,
+    accept_time timestamp,
+    start_process_time timestamp,
+    finish_time timestamp,
+    close_time timestamp,
+    suspend_time timestamp,
+    resume_time timestamp,
+    sla_deadline timestamp,
+    is_timeout boolean not null default false,
+    ai_category varchar(64),
     ai_risk_level varchar(32),
+    ai_recommend_dept varchar(64),
+    ai_recommend_handler varchar(64),
+    ai_estimated_time varchar(64),
+    ai_summary text,
+    ai_suggestion text,
+    reject_reason varchar(500),
+    suspend_reason varchar(500),
+    reopen_reason varchar(500),
     create_time timestamp not null default now(),
     update_time timestamp not null default now(),
     create_by bigint,
@@ -132,56 +147,44 @@ create table if not exists ticket_order (
 
 create unique index if not exists uk_ticket_order_no on ticket_order (ticket_no);
 create index if not exists idx_ticket_order_status on ticket_order (status);
-create index if not exists idx_ticket_order_assignee on ticket_order (assignee_id);
+create index if not exists idx_ticket_order_handler on ticket_order (handler_id);
 create index if not exists idx_ticket_order_deleted on ticket_order (deleted);
 
 create table if not exists ticket_flow_record (
-    id bigint primary key,
+    id bigserial primary key,
     ticket_id bigint not null,
-    from_status varchar(32),
-    to_status varchar(32),
     operator_id bigint,
     operator_name varchar(64),
     action varchar(64),
-    remark varchar(512),
-    create_time timestamp not null default now(),
-    update_time timestamp not null default now(),
-    create_by bigint,
-    update_by bigint,
-    deleted smallint not null default 0
+    before_status varchar(32),
+    after_status varchar(32),
+    remark varchar(500),
+    create_time timestamp not null default now()
 );
 
 create index if not exists idx_ticket_flow_ticket on ticket_flow_record (ticket_id);
 
 create table if not exists ticket_comment (
-    id bigint primary key,
+    id bigserial primary key,
     ticket_id bigint not null,
     user_id bigint,
-    username varchar(64),
+    user_name varchar(64),
     content text not null,
-    create_time timestamp not null default now(),
-    update_time timestamp not null default now(),
-    create_by bigint,
-    update_by bigint,
-    deleted smallint not null default 0
+    create_time timestamp not null default now()
 );
 
 create index if not exists idx_ticket_comment_ticket on ticket_comment (ticket_id);
 
 create table if not exists ticket_attachment (
-    id bigint primary key,
+    id bigserial primary key,
     ticket_id bigint not null,
-    file_name varchar(255) not null,
-    original_name varchar(255),
-    file_url varchar(1024) not null,
+    file_name varchar(255),
+    file_url varchar(500),
     file_size bigint,
-    content_type varchar(128),
-    storage_provider varchar(32),
-    create_time timestamp not null default now(),
-    update_time timestamp not null default now(),
-    create_by bigint,
-    update_by bigint,
-    deleted smallint not null default 0
+    file_type varchar(64),
+    upload_user_id bigint,
+    upload_user_name varchar(64),
+    create_time timestamp not null default now()
 );
 
 create index if not exists idx_ticket_attachment_ticket on ticket_attachment (ticket_id);

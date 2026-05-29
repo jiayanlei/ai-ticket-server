@@ -21,7 +21,7 @@ public class TicketUpdateRequest {
     @Schema(description = "优先级", allowableValues = {"LOW", "NORMAL", "HIGH", "URGENT"}, example = "HIGH")
     private String priority;
 
-    @Schema(description = "工单状态", allowableValues = {"NEW", "PROCESSING", "PENDING", "RESOLVED", "CLOSED"}, example = "PROCESSING")
+    @Schema(description = "工单状态。状态流转请使用专用接口，此字段在普通修改中会被忽略。", allowableValues = {"DRAFT", "PENDING_ACCEPT", "ACCEPTED", "PROCESSING", "PENDING", "WAIT_CONFIRM", "COMPLETED", "CLOSED", "REJECTED"}, example = "PROCESSING")
     private String status;
 
     @Schema(description = "来源", example = "WEB")
@@ -36,8 +36,17 @@ public class TicketUpdateRequest {
     @Schema(description = "处理人姓名", example = "系统管理员")
     private String assigneeName;
 
+    @Schema(description = "处理人 ID", example = "1")
+    private Long handlerId;
+
+    @Schema(description = "处理人姓名", example = "系统管理员")
+    private String handlerName;
+
     @Schema(description = "期望完成时间，格式 yyyy-MM-dd HH:mm:ss", example = "2026-04-30 18:00:00")
     private LocalDateTime dueTime;
+
+    @Schema(description = "期望完成时间，格式 yyyy-MM-dd HH:mm:ss", example = "2026-04-30 18:00:00")
+    private LocalDateTime expectedFinishTime;
 
     @Schema(description = "解决时间，格式 yyyy-MM-dd HH:mm:ss", example = "2026-04-24 10:00:00")
     private LocalDateTime resolvedTime;

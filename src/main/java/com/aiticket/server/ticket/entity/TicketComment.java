@@ -1,22 +1,37 @@
 package com.aiticket.server.ticket.entity;
 
-import com.aiticket.server.common.core.BaseEntity;
+import com.baomidou.mybatisplus.annotation.FieldFill;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
+
+import java.time.LocalDateTime;
 
 @Data
-@EqualsAndHashCode(callSuper = true)
 @TableName("ticket_comment")
 @Schema(description = "工单评论")
-public class TicketComment extends BaseEntity {
+public class TicketComment {
 
+    @TableId(type = IdType.ASSIGN_ID)
+    @Schema(description = "主键")
+    private Long id;
+
+    @Schema(description = "工单ID")
     private Long ticketId;
 
+    @Schema(description = "用户ID")
     private Long userId;
 
-    private String username;
+    @Schema(description = "用户姓名")
+    private String userName;
 
+    @Schema(description = "评论内容")
     private String content;
+
+    @TableField(fill = FieldFill.INSERT)
+    @Schema(description = "创建时间")
+    private LocalDateTime createTime;
 }

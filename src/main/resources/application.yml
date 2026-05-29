@@ -53,6 +53,13 @@ ai:
   api-key:
   chat-model:
   embedding-model:
+  agent:
+    frontend-path: ${AI_AGENT_FRONTEND_PATH:/Users/lei/Desktop/ai-ticket-web}
+    backend-path: ${AI_AGENT_BACKEND_PATH:/Users/lei/Desktop/ai-ticket-server}
+    log-path: ${AI_AGENT_LOG_PATH:./logs}
+    enable-command-exec: false
+    enable-file-write: false
+    enable-real-deploy: false
 
 rabbitmq:
   enabled: false

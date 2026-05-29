@@ -39,6 +39,15 @@ public class TicketCreateRequest {
     @Schema(description = "处理人姓名", example = "系统管理员")
     private String assigneeName;
 
+    @Schema(description = "处理人 ID", example = "1")
+    private Long handlerId;
+
+    @Schema(description = "处理人姓名", example = "系统管理员")
+    private String handlerName;
+
     @Schema(description = "期望完成时间，格式 yyyy-MM-dd HH:mm:ss", example = "2026-04-30 18:00:00")
     private LocalDateTime dueTime;
+
+    @Schema(description = "期望完成时间，格式 yyyy-MM-dd HH:mm:ss", example = "2026-04-30 18:00:00")
+    private LocalDateTime expectedFinishTime;
 }

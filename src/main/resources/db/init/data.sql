@@ -60,5 +60,20 @@ insert into sys_menu (
     (213, 210, '工单删除', 'BUTTON', null, null, 'ticket:order:delete', null, 3, false, 'ENABLED', now(), now(), 0),
     (214, 210, '工单详情', 'BUTTON', null, null, 'ticket:order:query', null, 4, false, 'ENABLED', now(), now(), 0),
     (215, 210, '工单回收站', 'BUTTON', null, null, 'ticket:order:recycle', null, 5, false, 'ENABLED', now(), now(), 0),
-    (216, 210, '工单恢复', 'BUTTON', null, null, 'ticket:order:restore', null, 6, false, 'ENABLED', now(), now(), 0)
+    (216, 210, '工单恢复', 'BUTTON', null, null, 'ticket:order:restore', null, 6, false, 'ENABLED', now(), now(), 0),
+    (217, 210, '工单创建草稿', 'BUTTON', null, null, 'ticket:order:create', null, 7, false, 'ENABLED', now(), now(), 0),
+    (218, 210, '工单提交', 'BUTTON', null, null, 'ticket:order:submit', null, 8, false, 'ENABLED', now(), now(), 0),
+    (219, 210, '工单受理', 'BUTTON', null, null, 'ticket:order:accept', null, 9, false, 'ENABLED', now(), now(), 0),
+    (220, 210, '工单处理', 'BUTTON', null, null, 'ticket:order:process', null, 10, false, 'ENABLED', now(), now(), 0),
+    (221, 210, '工单处理完成', 'BUTTON', null, null, 'ticket:order:finish', null, 11, false, 'ENABLED', now(), now(), 0),
+    (222, 210, '工单确认', 'BUTTON', null, null, 'ticket:order:confirm', null, 12, false, 'ENABLED', now(), now(), 0),
+    (223, 210, '工单转派', 'BUTTON', null, null, 'ticket:order:transfer', null, 13, false, 'ENABLED', now(), now(), 0),
+    (224, 210, '工单评论', 'BUTTON', null, null, 'ticket:order:comment', null, 14, false, 'ENABLED', now(), now(), 0),
+    (225, 210, '工单详情新版', 'BUTTON', null, null, 'ticket:order:detail', null, 15, false, 'ENABLED', now(), now(), 0),
+    (300, 0, 'AI 工作台', 'DIR', '/ai-agent', null, null, 'bot', 30, true, 'ENABLED', now(), now(), 0),
+    (310, 300, 'Codex 工作台', 'MENU', '/ai-agent/codex', 'agent/codex/index', 'ai:agent:chat', 'bot', 1, true, 'ENABLED', now(), now(), 0),
+    (311, 310, 'AI 聊天', 'BUTTON', null, null, 'ai:agent:chat', null, 1, false, 'ENABLED', now(), now(), 0),
+    (312, 310, '项目状态', 'BUTTON', null, null, 'ai:agent:status', null, 2, false, 'ENABLED', now(), now(), 0),
+    (313, 310, '最近日志', 'BUTTON', null, null, 'ai:agent:logs', null, 3, false, 'ENABLED', now(), now(), 0),
+    (314, 310, '操作确认', 'BUTTON', null, null, 'ai:agent:confirm', null, 4, false, 'ENABLED', now(), now(), 0)
 on conflict (id) do nothing;
