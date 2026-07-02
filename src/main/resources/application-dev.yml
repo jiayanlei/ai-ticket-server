@@ -1,15 +1,18 @@
 spring:
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/ai_ticket}
-    username: ${DB_USERNAME:${USER:lei}}
-    password: ${DB_PASSWORD:}
+    url: jdbc:postgresql://localhost:5432/ai_ticket
+    username: postgres
+    password: zxc123+++
+
   data:
     redis:
       host: localhost
       port: 6379
       database: 0
       timeout: 3s
+
+
   sql:
     init:
       mode: never
@@ -20,4 +23,5 @@ mybatis-plus:
 
 logging:
   level:
+    root: info
     com.aiticket.server: debug

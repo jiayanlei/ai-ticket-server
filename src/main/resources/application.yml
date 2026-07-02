@@ -1,43 +1,49 @@
 server:
-  port:  ${PORT:8080}
+  port: ${PORT:8080}
   servlet:
     context-path: /api
 
 spring:
   application:
     name: ai-ticket-server
-  profiles:
-    active: dev
+
   jackson:
     time-zone: Asia/Shanghai
     date-format: yyyy-MM-dd HH:mm:ss
 
+
 sa-token:
   token-name: Authorization
   token-prefix: Bearer
-  timeout: 86400
+  timeout: ${SA_TOKEN_TIMEOUT:86400}
   active-timeout: -1
   is-concurrent: true
   is-share: false
   token-style: random-64
   is-log: false
 
+
 mybatis-plus:
   mapper-locations: classpath*:/mapper/**/*.xml
+
   configuration:
     map-underscore-to-camel-case: true
+
   global-config:
     db-config:
       logic-delete-field: deleted
       logic-delete-value: 1
       logic-not-delete-value: 0
 
+
 springdoc:
   api-docs:
     enabled: true
+
   swagger-ui:
     enabled: true
     path: /swagger-ui/index.html
+
 
 minio:
   enabled: false
@@ -46,25 +52,31 @@ minio:
   secret-key:
   bucket: ai-ticket
 
+
 ai:
   enabled: false
+
   provider:
   base-url:
   api-key:
   chat-model:
   embedding-model:
+
   agent:
-    frontend-path: ${AI_AGENT_FRONTEND_PATH:/Users/lei/Desktop/ai-ticket-web}
-    backend-path: ${AI_AGENT_BACKEND_PATH:/Users/lei/Desktop/ai-ticket-server}
+    frontend-path: ${AI_AGENT_FRONTEND_PATH:}
+    backend-path: ${AI_AGENT_BACKEND_PATH:}
     log-path: ${AI_AGENT_LOG_PATH:./logs}
+
     enable-command-exec: false
     enable-file-write: false
     enable-real-deploy: false
 
+
 rabbitmq:
   enabled: false
+
 
 logging:
   level:
     root: info
-    com.aiticket.server: debug
+    com.aiticket.server: info
