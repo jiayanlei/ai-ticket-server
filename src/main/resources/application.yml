@@ -6,6 +6,8 @@ server:
 spring:
   application:
     name: ai-ticket-server
+  config:
+    import: optional:classpath:application-local.yml
 
   jackson:
     time-zone: Asia/Shanghai
@@ -54,13 +56,13 @@ minio:
 
 
 ai:
-  enabled: false
+  enabled: ${AI_ENABLED:false}
 
-  provider:
-  base-url:
-  api-key:
-  chat-model:
-  embedding-model:
+  provider: ${AI_PROVIDER:}
+  base-url: ${AI_BASE_URL:}
+  api-key: ${AI_API_KEY:}
+  chat-model: ${AI_CHAT_MODEL:}
+  embedding-model: ${AI_EMBEDDING_MODEL:}
 
   agent:
     frontend-path: ${AI_AGENT_FRONTEND_PATH:}

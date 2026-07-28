@@ -17,6 +17,7 @@ import com.aiticket.server.agent.vo.AiAffectedFileVO;
 import com.aiticket.server.agent.vo.AiChatResponse;
 import com.aiticket.server.agent.vo.AiProjectStatusVO;
 import com.aiticket.server.agent.vo.AiRecentLogVO;
+import com.aiticket.server.ai.DeepSeekChatClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -36,13 +37,14 @@ public class AiAgentServiceImpl implements AiAgentService {
     private final ProjectStatusTool projectStatusTool;
     private final ProjectLogReadTool projectLogReadTool;
     private final SafeCommandTool safeCommandTool;
+    private final DeepSeekChatClient deepSeekChatClient;
 
     @Override
     public AiChatResponse chat(AiChatRequest request) {
         String sessionId = resolveSessionId(request.getSessionId());
         AiTaskTypeEnum taskType = AiTaskTypeEnum.of(request.getTaskType());
         AiActionPlanVO plan = buildPlan(taskType, request.getMessage());
-        String reply = buildReply(taskType);
+        String reply = buildAiReply(taskType, request.getMessage(), plan);
         logOperation(sessionId, taskType.name(), request.getMessage(), plan.getRiskLevel(), null);
         return new AiChatResponse(sessionId, reply, plan, true);
     }
@@ -277,6 +279,34 @@ public class AiAgentServiceImpl implements AiAgentService {
             case CHANGE_PLAN -> "我已根据你的描述生成修改计划。当前阶段只做分析和计划，不会自动改代码。";
             case NORMAL_CHAT -> "收到。我会先以安全的规则模式提供分析建议；如果需要执行计划，可以指定 taskType 生成结构化步骤和风险提示。";
         };
+    }
+
+    private String buildAiReply(AiTaskTypeEnum taskType, String message, AiActionPlanVO plan) {
+        if (!deepSeekChatClient.isEnabled()) {
+            return buildReply(taskType);
+        }
+
+        try {
+            return deepSeekChatClient.chat(buildSystemPrompt(taskType, plan), message);
+        } catch (Exception ex) {
+            log.warn("DeepSeek AI 回复失败，使用本地兜底回复: {}", ex.getMessage());
+            return buildReply(taskType) + "\n\n> DeepSeek 暂时不可用，已返回本地安全兜底方案。";
+        }
+    }
+
+    private String buildSystemPrompt(AiTaskTypeEnum taskType, AiActionPlanVO plan) {
+        return """
+                你是 AI Ticket OS 的 AI 问答助手，面向前后端开发、运维和工单系统排查场景。
+                当前任务类型：%s。
+                当前计划摘要：%s。
+
+                回复要求：
+                - 使用简体中文。
+                - 优先给可落地、低风险、最小改动的建议。
+                - 不要声称已经修改代码、执行 SQL、发布系统或读取了你没有实际读取的文件。
+                - 遇到高风险动作时，先说明风险和确认点，不要鼓励直接执行。
+                - 可以使用 Markdown、列表和代码块，但保持简洁清楚。
+                """.formatted(taskType.getDescription(), plan.getSummary());
     }
 
     private List<String> resolveChangePlanScope(String message) {

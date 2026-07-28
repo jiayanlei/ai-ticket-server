@@ -2,8 +2,8 @@ spring:
   datasource:
     driver-class-name: org.postgresql.Driver
     url: jdbc:postgresql://localhost:5432/ai_ticket
-    username: postgres
-    password: zxc123+++
+    username: lei
+    password:
 
   data:
     redis:

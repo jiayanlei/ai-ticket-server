@@ -188,3 +188,101 @@ create table if not exists ticket_attachment (
 );
 
 create index if not exists idx_ticket_attachment_ticket on ticket_attachment (ticket_id);
+
+create table if not exists business_records (
+    id bigint primary key,
+    module varchar(64) not null,
+    title varchar(255) not null,
+    code varchar(64) not null,
+    owner varchar(64),
+    customer varchar(128),
+    channel varchar(64),
+    status varchar(32) not null,
+    priority varchar(32) not null,
+    metric varchar(64),
+    risk varchar(64),
+    description text,
+    ai_suggestion text,
+    tags jsonb not null default '[]'::jsonb,
+    timeline jsonb not null default '[]'::jsonb,
+    update_time timestamp not null default now(),
+    create_time timestamp not null default now(),
+    deleted smallint not null default 0
+);
+
+create unique index if not exists uk_business_records_code on business_records (code) where deleted = 0;
+create index if not exists idx_business_records_module on business_records (module);
+create index if not exists idx_business_records_status on business_records (status);
+
+create table if not exists sys_tenant (
+    id bigint primary key,
+    tenant_name varchar(128) not null,
+    tenant_code varchar(64) not null,
+    status varchar(32) not null,
+    service_status varchar(32) not null,
+    administrator varchar(64),
+    administrator_email varchar(128),
+    default_organization varchar(128),
+    enabled_modules jsonb not null default '[]'::jsonb,
+    organization_count int not null default 0,
+    user_count int not null default 0,
+    agent_count int not null default 0,
+    ai_agent_count int not null default 0,
+    settings jsonb not null default '{}'::jsonb,
+    permissions jsonb not null default '[]'::jsonb,
+    remark varchar(512),
+    create_time timestamp not null default now(),
+    update_time timestamp not null default now(),
+    deleted smallint not null default 0
+);
+
+create unique index if not exists uk_sys_tenant_code on sys_tenant (tenant_code) where deleted = 0;
+
+create table if not exists knowledge_category (
+    id bigint primary key,
+    parent_id bigint,
+    title varchar(128) not null,
+    sort_order int not null default 0,
+    status varchar(32) not null default 'ENABLED',
+    create_time timestamp not null default now(),
+    update_time timestamp not null default now(),
+    deleted smallint not null default 0
+);
+
+create index if not exists idx_knowledge_category_parent on knowledge_category (parent_id);
+
+create table if not exists knowledge_document (
+    id bigint primary key,
+    category_id bigint,
+    category_name varchar(128),
+    title varchar(255) not null,
+    summary text,
+    content text,
+    status varchar(32) not null default 'DRAFT',
+    tags jsonb not null default '[]'::jsonb,
+    version varchar(32),
+    owner varchar(64),
+    view_count int not null default 0,
+    create_time timestamp not null default now(),
+    update_time timestamp not null default now(),
+    deleted smallint not null default 0
+);
+
+create index if not exists idx_knowledge_document_category on knowledge_document (category_id);
+create index if not exists idx_knowledge_document_status on knowledge_document (status);
+
+create table if not exists document_center (
+    id bigint primary key,
+    file_name varchar(255) not null,
+    category varchar(64),
+    owner varchar(64),
+    file_size varchar(32),
+    format varchar(32),
+    parse_status varchar(32) not null,
+    summary text,
+    create_time timestamp not null default now(),
+    update_time timestamp not null default now(),
+    deleted smallint not null default 0
+);
+
+create index if not exists idx_document_center_category on document_center (category);

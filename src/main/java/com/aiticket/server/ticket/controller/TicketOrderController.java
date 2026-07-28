@@ -7,6 +7,7 @@ import com.aiticket.server.config.OpenApiConfig;
 import com.aiticket.server.ticket.dto.TicketAcceptDTO;
 import com.aiticket.server.ticket.dto.TicketCommentCreateDTO;
 import com.aiticket.server.ticket.dto.TicketConfirmDTO;
+import com.aiticket.server.ticket.dto.TicketCreateRequest;
 import com.aiticket.server.ticket.dto.TicketDraftCreateDTO;
 import com.aiticket.server.ticket.dto.TicketFinishDTO;
 import com.aiticket.server.ticket.dto.TicketQueryRequest;
@@ -17,7 +18,9 @@ import com.aiticket.server.ticket.dto.TicketStartProcessDTO;
 import com.aiticket.server.ticket.dto.TicketSubmitDTO;
 import com.aiticket.server.ticket.dto.TicketSuspendDTO;
 import com.aiticket.server.ticket.dto.TicketTransferDTO;
+import com.aiticket.server.ticket.dto.TicketUpdateRequest;
 import com.aiticket.server.ticket.service.TicketOrderService;
+import com.aiticket.server.ticket.vo.TicketActionResultVO;
 import com.aiticket.server.ticket.vo.TicketAiAnalysisVO;
 import com.aiticket.server.ticket.vo.TicketAttachmentVO;
 import com.aiticket.server.ticket.vo.TicketCommentVO;
@@ -37,6 +40,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -61,6 +65,13 @@ public class TicketOrderController {
     }
 
     @SaCheckPermission("ticket:order:create")
+    @Operation(summary = "新增工单", description = "创建工单草稿并返回新工单 ID。兼容前端 /tickets 创建路径。")
+    @PostMapping
+    public ApiResponse<Long> create(@Valid @RequestBody TicketCreateRequest request) {
+        return ApiResponse.ok(ticketOrderService.createTicket(request));
+    }
+
+    @SaCheckPermission("ticket:order:create")
     @Operation(summary = "新建草稿", description = "创建工单草稿，状态为 DRAFT，并写入流程记录。")
     @PostMapping("/draft")
     public ApiResponse<Long> createDraft(@Valid @RequestBody TicketDraftCreateDTO request) {
@@ -70,98 +81,107 @@ public class TicketOrderController {
     @SaCheckPermission("ticket:order:submit")
     @Operation(summary = "提交工单", description = "仅允许 DRAFT 提交为 PENDING_ACCEPT，写入提交时间、SLA 截止时间，并触发 mock AI 分析。")
     @PostMapping("/{id}/submit")
-    public ApiResponse<Void> submit(@Parameter(description = "工单 ID", required = true, example = "1") @PathVariable Long id,
-                                    @Valid @RequestBody(required = false) TicketSubmitDTO request) {
+    public ApiResponse<TicketActionResultVO> submit(@Parameter(description = "工单 ID", required = true, example = "1") @PathVariable Long id,
+                                                    @Valid @RequestBody(required = false) TicketSubmitDTO request) {
         ticketOrderService.submit(id, request);
-        return ApiResponse.ok();
+        return ApiResponse.ok(buildActionResult(id));
     }
 
     @SaCheckPermission("ticket:order:accept")
     @Operation(summary = "立即受理", description = "仅允许 PENDING_ACCEPT 状态受理为 ACCEPTED，写入受理时间和处理人。")
     @PostMapping("/{id}/accept")
-    public ApiResponse<Void> accept(@Parameter(description = "工单 ID", required = true, example = "1") @PathVariable Long id,
-                                    @Valid @RequestBody TicketAcceptDTO request) {
+    public ApiResponse<TicketActionResultVO> accept(@Parameter(description = "工单 ID", required = true, example = "1") @PathVariable Long id,
+                                                    @Valid @RequestBody(required = false) TicketAcceptDTO request) {
         ticketOrderService.accept(id, request);
-        return ApiResponse.ok();
+        return ApiResponse.ok(buildActionResult(id));
     }
 
     @SaCheckPermission("ticket:order:process")
     @Operation(summary = "开始处理", description = "仅允许 ACCEPTED 状态进入 PROCESSING。")
     @PostMapping("/{id}/start-process")
-    public ApiResponse<Void> startProcess(@Parameter(description = "工单 ID", required = true, example = "1") @PathVariable Long id,
-                                          @Valid @RequestBody(required = false) TicketStartProcessDTO request) {
+    public ApiResponse<TicketActionResultVO> startProcess(@Parameter(description = "工单 ID", required = true, example = "1") @PathVariable Long id,
+                                                          @Valid @RequestBody(required = false) TicketStartProcessDTO request) {
         ticketOrderService.startProcess(id, request);
-        return ApiResponse.ok();
+        return ApiResponse.ok(buildActionResult(id));
     }
 
     @SaCheckPermission("ticket:order:process")
     @Operation(summary = "挂起工单", description = "仅允许 PROCESSING 状态挂起为 PENDING。")
     @PostMapping("/{id}/suspend")
-    public ApiResponse<Void> suspend(@Parameter(description = "工单 ID", required = true, example = "1") @PathVariable Long id,
-                                     @Valid @RequestBody TicketSuspendDTO request) {
+    public ApiResponse<TicketActionResultVO> suspend(@Parameter(description = "工单 ID", required = true, example = "1") @PathVariable Long id,
+                                                     @Valid @RequestBody(required = false) TicketSuspendDTO request) {
         ticketOrderService.suspend(id, request);
-        return ApiResponse.ok();
+        return ApiResponse.ok(buildActionResult(id));
     }
 
     @SaCheckPermission("ticket:order:process")
     @Operation(summary = "恢复处理", description = "仅允许 PENDING 状态恢复为 PROCESSING。")
     @PostMapping("/{id}/resume")
-    public ApiResponse<Void> resume(@Parameter(description = "工单 ID", required = true, example = "1") @PathVariable Long id,
-                                    @Valid @RequestBody(required = false) TicketResumeDTO request) {
+    public ApiResponse<TicketActionResultVO> resume(@Parameter(description = "工单 ID", required = true, example = "1") @PathVariable Long id,
+                                                    @Valid @RequestBody(required = false) TicketResumeDTO request) {
         ticketOrderService.resume(id, request);
-        return ApiResponse.ok();
+        return ApiResponse.ok(buildActionResult(id));
     }
 
     @SaCheckPermission("ticket:order:finish")
     @Operation(summary = "处理完成", description = "仅允许 PROCESSING 状态进入 WAIT_CONFIRM。")
     @PostMapping("/{id}/finish")
-    public ApiResponse<Void> finish(@Parameter(description = "工单 ID", required = true, example = "1") @PathVariable Long id,
-                                    @Valid @RequestBody(required = false) TicketFinishDTO request) {
+    public ApiResponse<TicketActionResultVO> finish(@Parameter(description = "工单 ID", required = true, example = "1") @PathVariable Long id,
+                                                    @Valid @RequestBody(required = false) TicketFinishDTO request) {
         ticketOrderService.finish(id, request);
-        return ApiResponse.ok();
+        return ApiResponse.ok(buildActionResult(id));
     }
 
     @SaCheckPermission("ticket:order:confirm")
     @Operation(summary = "确认完成", description = "仅允许 WAIT_CONFIRM 状态确认为 COMPLETED，并判断是否超时。")
     @PostMapping("/{id}/confirm")
-    public ApiResponse<Void> confirm(@Parameter(description = "工单 ID", required = true, example = "1") @PathVariable Long id,
-                                     @Valid @RequestBody(required = false) TicketConfirmDTO request) {
+    public ApiResponse<TicketActionResultVO> confirm(@Parameter(description = "工单 ID", required = true, example = "1") @PathVariable Long id,
+                                                     @Valid @RequestBody(required = false) TicketConfirmDTO request) {
         ticketOrderService.confirm(id, request);
-        return ApiResponse.ok();
+        return ApiResponse.ok(buildActionResult(id));
     }
 
     @SaCheckPermission("ticket:order:process")
     @Operation(summary = "重新打开", description = "仅允许 WAIT_CONFIRM 或 COMPLETED 状态重新打开为 PROCESSING。")
     @PostMapping("/{id}/reopen")
-    public ApiResponse<Void> reopen(@Parameter(description = "工单 ID", required = true, example = "1") @PathVariable Long id,
-                                    @Valid @RequestBody TicketReopenDTO request) {
+    public ApiResponse<TicketActionResultVO> reopen(@Parameter(description = "工单 ID", required = true, example = "1") @PathVariable Long id,
+                                                    @Valid @RequestBody(required = false) TicketReopenDTO request) {
         ticketOrderService.reopen(id, request);
-        return ApiResponse.ok();
+        return ApiResponse.ok(buildActionResult(id));
     }
 
     @SaCheckPermission("ticket:order:transfer")
     @Operation(summary = "转派工单", description = "允许 PENDING_ACCEPT、ACCEPTED、PROCESSING 状态转派，状态保持不变。")
     @PostMapping("/{id}/transfer")
-    public ApiResponse<Void> transfer(@Parameter(description = "工单 ID", required = true, example = "1") @PathVariable Long id,
-                                      @Valid @RequestBody TicketTransferDTO request) {
+    public ApiResponse<TicketActionResultVO> transfer(@Parameter(description = "工单 ID", required = true, example = "1") @PathVariable Long id,
+                                                      @Valid @RequestBody TicketTransferDTO request) {
         ticketOrderService.transfer(id, request);
-        return ApiResponse.ok();
+        return ApiResponse.ok(buildActionResult(id));
     }
 
     @SaCheckPermission("ticket:order:accept")
     @Operation(summary = "驳回工单", description = "仅允许 PENDING_ACCEPT 状态驳回为 REJECTED。")
     @PostMapping("/{id}/reject")
-    public ApiResponse<Void> reject(@Parameter(description = "工单 ID", required = true, example = "1") @PathVariable Long id,
-                                    @Valid @RequestBody TicketRejectDTO request) {
+    public ApiResponse<TicketActionResultVO> reject(@Parameter(description = "工单 ID", required = true, example = "1") @PathVariable Long id,
+                                                    @Valid @RequestBody TicketRejectDTO request) {
         ticketOrderService.reject(id, request);
-        return ApiResponse.ok();
+        return ApiResponse.ok(buildActionResult(id));
     }
 
     @SaCheckPermission("ticket:order:confirm")
     @Operation(summary = "关闭工单", description = "仅允许 COMPLETED 状态关闭为 CLOSED，用于完成 COMPLETED -> CLOSED 生命周期。")
     @PostMapping("/{id}/close")
-    public ApiResponse<Void> close(@Parameter(description = "工单 ID", required = true, example = "1") @PathVariable Long id) {
+    public ApiResponse<TicketActionResultVO> close(@Parameter(description = "工单 ID", required = true, example = "1") @PathVariable Long id) {
         ticketOrderService.close(id);
+        return ApiResponse.ok(buildActionResult(id));
+    }
+
+    @SaCheckPermission("ticket:order:edit")
+    @Operation(summary = "修改工单", description = "修改工单基础信息。状态流转请使用专用生命周期接口。")
+    @PutMapping("/{id}")
+    public ApiResponse<Void> update(@Parameter(description = "工单 ID", required = true, example = "1") @PathVariable Long id,
+                                    @Valid @RequestBody TicketUpdateRequest request) {
+        ticketOrderService.updateTicket(id, request);
         return ApiResponse.ok();
     }
 
@@ -229,5 +249,26 @@ public class TicketOrderController {
     public ApiResponse<Void> delete(@Parameter(description = "工单 ID", required = true, example = "1") @PathVariable Long id) {
         ticketOrderService.deleteTicket(id);
         return ApiResponse.ok();
+    }
+
+    private TicketActionResultVO buildActionResult(Long id) {
+        TicketOrderVO ticket = ticketOrderService.getTicket(id);
+        TicketActionResultVO result = new TicketActionResultVO();
+        result.setId(ticket.getId());
+        result.setTicketNo(ticket.getTicketNo());
+        result.setTitle(ticket.getTitle());
+        result.setStatus(ticket.getStatus());
+        result.setPriority(ticket.getPriority());
+        result.setAssigneeId(ticket.getAssigneeId());
+        result.setAssigneeName(ticket.getAssigneeName());
+        result.setHandlerId(ticket.getHandlerId());
+        result.setHandlerName(ticket.getHandlerName());
+        result.setAcceptedTime(ticket.getAcceptTime());
+        result.setStartProcessTime(ticket.getStartProcessTime());
+        result.setFinishTime(ticket.getFinishTime());
+        result.setCompletedTime(ticket.getCloseTime());
+        result.setCloseTime(ticket.getCloseTime());
+        result.setUpdateTime(ticket.getUpdateTime());
+        return result;
     }
 }

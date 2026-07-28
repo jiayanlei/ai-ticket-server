@@ -149,10 +149,10 @@ public class TicketOrderServiceImpl extends ServiceImpl<TicketOrderMapper, Ticke
         String beforeStatus = ticket.getStatus();
         ticket.setStatus(TicketStatusEnum.ACCEPTED.getCode());
         ticket.setAcceptTime(LocalDateTime.now());
-        ticket.setHandlerId(request.getHandlerId());
-        ticket.setHandlerName(request.getHandlerName());
+        ticket.setHandlerId(request == null || request.getHandlerId() == null ? currentOperatorId() : request.getHandlerId());
+        ticket.setHandlerName(request == null || !StringUtils.hasText(request.getHandlerName()) ? currentOperatorName() : request.getHandlerName());
         updateById(ticket);
-        recordFlow(ticket.getId(), beforeStatus, ticket.getStatus(), TicketActionEnum.ACCEPT, request.getRemark());
+        recordFlow(ticket.getId(), beforeStatus, ticket.getStatus(), TicketActionEnum.ACCEPT, request == null ? null : request.getRemark());
     }
 
     @Override
@@ -173,11 +173,12 @@ public class TicketOrderServiceImpl extends ServiceImpl<TicketOrderMapper, Ticke
         TicketOrder ticket = requireTicket(id);
         assertStatus(ticket, TicketStatusEnum.PROCESSING);
         String beforeStatus = ticket.getStatus();
+        String suspendReason = request == null || !StringUtils.hasText(request.getSuspendReason()) ? "快捷挂起" : request.getSuspendReason();
         ticket.setStatus(TicketStatusEnum.PENDING.getCode());
         ticket.setSuspendTime(LocalDateTime.now());
-        ticket.setSuspendReason(request.getSuspendReason());
+        ticket.setSuspendReason(suspendReason);
         updateById(ticket);
-        recordFlow(ticket.getId(), beforeStatus, ticket.getStatus(), TicketActionEnum.SUSPEND, request.getSuspendReason());
+        recordFlow(ticket.getId(), beforeStatus, ticket.getStatus(), TicketActionEnum.SUSPEND, suspendReason);
     }
 
     @Override
@@ -224,11 +225,12 @@ public class TicketOrderServiceImpl extends ServiceImpl<TicketOrderMapper, Ticke
         TicketOrder ticket = requireTicket(id);
         assertStatus(ticket, TicketStatusEnum.WAIT_CONFIRM, TicketStatusEnum.COMPLETED);
         String beforeStatus = ticket.getStatus();
+        String reopenReason = request == null || !StringUtils.hasText(request.getReopenReason()) ? "快捷重新打开" : request.getReopenReason();
         ticket.setStatus(TicketStatusEnum.PROCESSING.getCode());
         ticket.setCloseTime(null);
-        ticket.setReopenReason(request.getReopenReason());
+        ticket.setReopenReason(reopenReason);
         updateById(ticket);
-        recordFlow(ticket.getId(), beforeStatus, ticket.getStatus(), TicketActionEnum.REOPEN, request.getReopenReason());
+        recordFlow(ticket.getId(), beforeStatus, ticket.getStatus(), TicketActionEnum.REOPEN, reopenReason);
     }
 
     @Override
