@@ -1,7 +1,7 @@
 spring:
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/ai_ticket
+    url: jdbc:postgresql://39.96.71.84:5432/ai_ticket
     username: lei
     password:
 
